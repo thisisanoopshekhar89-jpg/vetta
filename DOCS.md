@@ -2,6 +2,8 @@
 
 Résumé matcher and integrity screener for employers.
 
+**Live demo:** https://vetta-vet-applicants.netlify.app/
+
 Copyright © 2026 Anoop Shekhar. All rights reserved.
 Not to be copied, deployed or integrated without written permission —
 **thisisanoopshekhar89@gmail.com**. See [LICENSE](LICENSE).

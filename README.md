@@ -2,6 +2,8 @@
 
 **Vet the applicants.**
 
+[Live demo](https://vetta-vet-applicants.netlify.app/) · [Documentation](DOCS.md) · Licensing: thisisanoopshekhar89@gmail.com
+
 Score a résumé against a job description, and flag hidden text, prompt injection
 and screening malpractice in the same pass.
 
@@ -245,10 +247,15 @@ decision. This tool narrows the gap; it does not close it.
 
 ## Try it in a browser
 
-A limited preview runs in the browser at **[the demo page](docs/index.html)** — paste a
-job description and résumé *text* and see the match, injection, repetition, filler and
-timeline checks fire. It cannot inspect a real PDF or DOCX for hidden text, because that
-needs document parsing; the app does that part.
+**Live demo: https://vetta-vet-applicants.netlify.app/**
+
+Paste a job description and résumé *text* and watch the match, injection, repetition,
+filler, implausible-metric and timeline checks run — entirely in your browser, nothing
+uploaded. Source for the page is [docs/index.html](docs/index.html).
+
+It is deliberately a reduced preview: it cannot inspect a real PDF or DOCX for hidden
+text, because that needs document parsing rather than text analysis. That is what the
+desktop app does.
 
 ## Documentation
 
