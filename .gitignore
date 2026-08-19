@@ -15,10 +15,12 @@ samples/*.docx
 report.json
 
 # build artefacts
-Bonafide.spec
 Vetta.spec
 *.db
 reports/
 docs/*.pdf
 shot_*.png
 vetta-demo-netlify.zip
+
+# private, never published: the fork/clone tracker and the LinkedIn assets
+_local/
