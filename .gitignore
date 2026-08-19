@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.idea/
+.vscode/
+*.egg-info/
+dist/
+build/
+
+# generated fixtures and reports
+samples/*.pdf
+samples/*.docx
+report.json

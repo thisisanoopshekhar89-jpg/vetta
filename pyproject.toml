@@ -1,0 +1,20 @@
+[project]
+name = "resume-integrity-screener"
+version = "0.1.0"
+description = "Score resumes against a job description and flag hidden text, prompt injection and screening malpractice."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "Anoop Shekhar" }]
+keywords = ["resume", "ats", "prompt-injection", "hidden-text", "hiring", "security"]
+dependencies = ["PyMuPDF>=1.24"]
+
+[project.optional-dependencies]
+samples = ["reportlab>=4.0"]
+
+[project.scripts]
+resume-screen = "screener.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"

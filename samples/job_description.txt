@@ -1,0 +1,14 @@
+Business Analyst - Insurance Operations
+
+We are looking for a business analyst to support process improvement across claims
+and underwriting. You will run process mapping workshops, handle requirements
+gathering, and document standard operating procedures.
+
+Requirements:
+- Experience in business analysis within insurance operations
+- Process mapping and process documentation
+- SQL and Power BI for data analysis and reporting
+- Stakeholder management across operations teams
+- Exposure to workflow automation and continuous improvement
+- Root cause analysis experience
+- ERP exposure (SAP or equivalent)
