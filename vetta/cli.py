@@ -1,3 +1,6 @@
+# Vetta - proprietary software. Copyright (c) 2026 Anoop Shekhar.
+# Public to read, not to use. Copying, modification, deployment or commercial
+# use requires written permission: thisisanoopshekhar89@gmail.com
 """Command line interface.
 
 Two modes:
@@ -23,6 +26,13 @@ from .screen import screen_many, screen_one
 from .store import DEFAULT_DB, Store
 
 EXIT_CLEAN, EXIT_FLAGGED, EXIT_USAGE = 0, 1, 2
+
+LICENCE_NOTE = "\n".join([
+    "Vetta is proprietary software. Copyright (c) 2026 Anoop Shekhar.",
+    "Reading and private evaluation are free. Deployment, integration or commercial",
+    "use requires written permission: thisisanoopshekhar89@gmail.com",
+    "Demo and docs: https://vetta-vet-applicants.netlify.app/",
+])
 RANK = {"high": 3, "medium": 2, "low": 1, "info": 0}
 
 
@@ -58,6 +68,9 @@ def cmd_screen(args) -> int:
     elif not args.pdf or args.verbose:
         color = not args.no_color and sys.stdout.isatty()
         print(render_text(results, batch, color=color, verbose=args.verbose))
+        print("Vetta (c) 2026 Anoop Shekhar — proprietary. Deployment or commercial "
+              "use requires permission:")
+        print("thisisanoopshekhar89@gmail.com   ·   run `vetta licence` for terms")
 
     if args.fail_on == "never":
         return EXIT_CLEAN
@@ -219,6 +232,11 @@ def cmd_report(args) -> int:
     return EXIT_CLEAN
 
 
+def cmd_licence(args) -> int:
+    print(LICENCE_NOTE)
+    return EXIT_CLEAN
+
+
 def cmd_stats(args) -> int:
     with Store(args.db) as st:
         for k, v in st.stats().items():
@@ -294,10 +312,15 @@ def build_parser() -> argparse.ArgumentParser:
 
     stt = sub.add_parser("stats", help="workspace counts")
     stt.set_defaults(func=cmd_stats)
+
+    lic = sub.add_parser("licence", aliases=["license"],
+                         help="licence terms and how to request permission")
+    lic.set_defaults(func=cmd_licence)
     return ap
 
 
-KNOWN = {"screen", "job", "intake", "shortlist", "flags", "report", "stats"}
+KNOWN = {"screen", "job", "intake", "shortlist", "flags", "report", "stats",
+         "licence", "license"}
 
 
 def _looks_like_resume_arg(a: str) -> bool:

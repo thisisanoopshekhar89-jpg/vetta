@@ -1,3 +1,6 @@
+# Vetta - proprietary software. Copyright (c) 2026 Anoop Shekhar.
+# Public to read, not to use. Copying, modification, deployment or commercial
+# use requires written permission: thisisanoopshekhar89@gmail.com
 """Tests for the workspace layer: store, quality checks, pipeline, identity.
 
 Run with: python tests/test_workspace.py   (or python -m pytest -q)

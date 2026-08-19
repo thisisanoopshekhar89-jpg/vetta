@@ -1,3 +1,6 @@
+# Vetta - proprietary software. Copyright (c) 2026 Anoop Shekhar.
+# Public to read, not to use. Copying, modification, deployment or commercial
+# use requires written permission: thisisanoopshekhar89@gmail.com
 """Malpractice checks beyond hidden text.
 
 These target things a candidate does to game an automated screener rather than

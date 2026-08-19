@@ -1,3 +1,6 @@
+# Vetta - proprietary software. Copyright (c) 2026 Anoop Shekhar.
+# Public to read, not to use. Copying, modification, deployment or commercial
+# use requires written permission: thisisanoopshekhar89@gmail.com
 """Pull a candidate's name, email and phone out of résumé text.
 
 Deliberately conservative: a wrong name attached to a malpractice finding is

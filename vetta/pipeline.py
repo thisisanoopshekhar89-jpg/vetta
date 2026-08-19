@@ -1,3 +1,6 @@
+# Vetta - proprietary software. Copyright (c) 2026 Anoop Shekhar.
+# Public to read, not to use. Copying, modification, deployment or commercial
+# use requires written permission: thisisanoopshekhar89@gmail.com
 """Multi-posting orchestration.
 
 An employer runs several openings at once and receives résumés against each. This

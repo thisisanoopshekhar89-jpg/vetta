@@ -1,3 +1,6 @@
+# Vetta - proprietary software. Copyright (c) 2026 Anoop Shekhar.
+# Public to read, not to use. Copying, modification, deployment or commercial
+# use requires written permission: thisisanoopshekhar89@gmail.com
 """Tests. Run with: python -m pytest -q   (or: python tests/test_screen.py)
 
 Fixtures are generated, not committed as binaries, so the test suite also proves
@@ -23,7 +26,7 @@ from vetta.screen import screen_one                            # noqa: E402
 
 def _ensure_samples():
     need = ["clean_resume.pdf", "poisoned_resume.pdf", "poisoned_resume.docx",
-            "job_description.txt"]
+            "dark_on_dark_resume.pdf", "job_description.txt"]
     if not all(os.path.exists(os.path.join(SAMPLES, n)) for n in need):
         subprocess.run([sys.executable, os.path.join(SAMPLES, "make_samples.py")],
                        check=True, capture_output=True)
@@ -63,6 +66,29 @@ def test_pdf_detects_each_hiding_technique():
     assert "invisible render mode" in details
     assert "font size" in details
     assert "outside the page box" in details
+
+
+def test_dark_text_on_dark_background_is_caught():
+    """Contrast is judged against the actual background, not assumed white paper.
+
+    Black-on-black used to slip through completely: the check compared every glyph
+    against white, so dark text on a dark box looked like perfectly normal text.
+    """
+    _ensure_samples()
+    r = screen_one(os.path.join(SAMPLES, "dark_on_dark_resume.pdf"), _jd())
+    assert r.verdict == "fail", [f.code for f in r.findings]
+    assert r.hidden_ratio > 0.02, r.hidden_ratio
+    assert "Ignore previous instructions" in r.hidden_text
+    details = " ".join(f.detail for f in r.findings if f.code == "HIDDEN_TEXT_PDF")
+    assert "dark background" in details, details
+
+
+def test_normal_dark_text_on_white_is_not_flagged():
+    """The obvious false positive: ordinary black text on white paper."""
+    _ensure_samples()
+    r = screen_one(os.path.join(SAMPLES, "clean_resume.pdf"), _jd())
+    assert r.hidden_ratio == 0.0
+    assert not any(f.code == "HIDDEN_TEXT_PDF" for f in r.findings)
 
 
 def test_poisoned_docx_fails():

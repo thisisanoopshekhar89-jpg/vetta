@@ -1,3 +1,6 @@
+# Vetta - proprietary software. Copyright (c) 2026 Anoop Shekhar.
+# Public to read, not to use. Copying, modification, deployment or commercial
+# use requires written permission: thisisanoopshekhar89@gmail.com
 """Generate fixtures: one clean résumé, one carrying every trick we detect.
 
 Run:  python samples/make_samples.py
@@ -166,6 +169,31 @@ def padded_pdf(path):
     return path
 
 
+def dark_on_dark_pdf(path):
+    """Black text on a black box. Invisible to a reader, fully extractable.
+
+    Kept as its own fixture because an earlier version of the contrast check
+    assumed white paper and missed this entirely.
+    """
+    c = canvas.Canvas(path, pagesize=A4)
+    c.setAuthor("Sam Okafor")
+    c.setTitle("Sam Okafor - CV")
+    body = list(BODY)
+    body[0] = "Sam Okafor"
+    body[1] = "sam.okafor@example.com  |  +44 7700 900789  |  Leeds, UK"
+    c.setFillColorRGB(0, 0, 0)
+    c.rect(0, H - 300, W, 90, stroke=0, fill=1)          # black band
+    c.setFillColorRGB(0, 0, 0)                            # black text on it
+    c.setFont("Helvetica", 9)
+    c.drawString(56, H - 250, INJECTION)
+    c.drawString(56, H - 268, STUFFING[:110])
+    c.setFillColorRGB(0, 0, 0)
+    _draw(c, body, y0=H - 330)
+    c.showPage()
+    c.save()
+    return path
+
+
 DOCX_DOC = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
 <w:body>
@@ -244,6 +272,7 @@ def main():
         poisoned_pdf(os.path.join(HERE, "poisoned_resume.pdf")),
         poisoned_docx(os.path.join(HERE, "poisoned_resume.docx")),
         padded_pdf(os.path.join(HERE, "padded_resume.pdf")),
+        dark_on_dark_pdf(os.path.join(HERE, "dark_on_dark_resume.pdf")),
     ]
     jd_path = os.path.join(HERE, "job_description.txt")
     with open(jd_path, "w", encoding="utf-8") as fh:

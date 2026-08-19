@@ -1,3 +1,6 @@
+# Vetta - proprietary software. Copyright (c) 2026 Anoop Shekhar.
+# Public to read, not to use. Copying, modification, deployment or commercial
+# use requires written permission: thisisanoopshekhar89@gmail.com
 """Extract two views of a document: what a machine ingests, and what a human sees.
 
 The gap between those two is the whole point of this tool. A parser or an LLM
@@ -20,8 +23,9 @@ from .checks import HIGH, LOW, MEDIUM, Finding
 # A glyph is treated as invisible/illegible if any of these hold.
 INVISIBLE_RENDER_MODE = 3
 MIN_LEGIBLE_PT = 4.0
-NEAR_WHITE = 0.94          # per-channel, on the assumption of white paper
-MIN_CONTRAST = 0.22        # luminance delta below this is effectively unreadable
+NEAR_WHITE = 0.94          # per-channel
+MIN_CONTRAST = 0.22        # luminance delta from the background below which text
+                           # is effectively unreadable, whichever way round it is
 
 
 @dataclass
@@ -51,6 +55,47 @@ class Extraction:
 def _lum(rgb: tuple[float, float, float]) -> float:
     r, g, b = rgb
     return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def _page_fills(page) -> list:
+    """Filled shapes on the page, in draw order, as (rect, rgb).
+
+    Needed because "is this text legible" depends on what is behind it. Assuming
+    white paper misses black text drawn on a black box - a real hiding technique.
+    """
+    out = []
+    try:
+        drawings = page.get_drawings()
+    except Exception:
+        return out
+    for d in drawings:
+        fill = d.get("fill")
+        rect = d.get("rect")
+        if fill is None or rect is None:
+            continue
+        try:
+            out.append((fitz.Rect(rect), _norm_color(tuple(fill))))
+        except Exception:
+            continue
+    return out
+
+
+def _background_behind(bbox, fills: list) -> tuple[float, float, float]:
+    """Colour behind a text span: the last drawn fill that covers it, else white."""
+    bg = (1.0, 1.0, 1.0)
+    try:
+        span = fitz.Rect(bbox)
+    except Exception:
+        return bg
+    area = abs(span.get_area()) or 1.0
+    for rect, col in fills:                       # draw order, so later wins
+        try:
+            overlap = abs((rect & span).get_area())
+        except Exception:
+            continue
+        if overlap >= 0.6 * area:
+            bg = col
+    return bg
 
 
 def _norm_color(color) -> tuple[float, float, float]:
@@ -93,6 +138,7 @@ def extract_pdf(path: str) -> Extraction:
         rect = page.rect
         machine_parts.append(page.get_text())
 
+        fills = _page_fills(page)
         for span in page.get_texttrace():
             text = _span_text(span)
             if not text.strip():
@@ -108,10 +154,19 @@ def extract_pdf(path: str) -> Extraction:
                 reasons.append("invisible render mode (Tr 3)")
             if 0 < size < MIN_LEGIBLE_PT:
                 reasons.append("font size %.1fpt" % size)
-            if all(c >= NEAR_WHITE for c in rgb):
-                reasons.append("near-white fill rgb(%.2f, %.2f, %.2f)" % rgb)
-            elif abs(_lum(rgb) - 1.0) < MIN_CONTRAST:
-                reasons.append("contrast against white below threshold")
+            bg = _background_behind(bbox, fills)
+            contrast = abs(_lum(rgb) - _lum(bg))
+            if contrast < MIN_CONTRAST:
+                if all(c >= NEAR_WHITE for c in rgb) and all(c >= NEAR_WHITE for c in bg):
+                    reasons.append("near-white text on near-white background "
+                                   "rgb(%.2f, %.2f, %.2f)" % rgb)
+                elif _lum(bg) < 0.2:
+                    reasons.append("dark text on a dark background "
+                                   "(text %.2f, background %.2f luminance)"
+                                   % (_lum(rgb), _lum(bg)))
+                else:
+                    reasons.append("contrast %.2f against its background is below the "
+                                   "legibility threshold" % contrast)
             try:
                 if (bbox[3] < rect.y0 - 2 or bbox[1] > rect.y1 + 2
                         or bbox[2] < rect.x0 - 2 or bbox[0] > rect.x1 + 2):

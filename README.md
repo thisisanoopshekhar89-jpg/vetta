@@ -153,7 +153,8 @@ gets built for that.
 
 | Technique | How |
 |---|---|
-| White-on-white | Per-glyph fill colour against the page |
+| White-on-white | Per-glyph fill colour against its actual background |
+| **Dark-on-dark** | Contrast measured against the real background, not assumed white paper |
 | Invisible render mode | PDF text render mode 3 (`Tr 3`) |
 | Micro-type | Font size below 4pt |
 | Off-page | Glyph bounding box outside the page box |

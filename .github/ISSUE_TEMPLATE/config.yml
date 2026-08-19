@@ -1,0 +1,13 @@
+# GitHub shows these links prominently the moment anyone clicks "New issue",
+# which makes the licence request the first thing a would-be user sees.
+blank_issues_enabled: false
+contact_links:
+  - name: 📧 Request permission to use, deploy or integrate Vetta
+    url: mailto:thisisanoopshekhar89@gmail.com?subject=Vetta%20licence%20request&body=Intended%20use%3A%0AOrganisation%3A%0AScope%20required%20(evaluation%20%2F%20internal%20deployment%20%2F%20commercial%20%2F%20ATS%20integration%20%2F%20API)%3A%0AExpected%20volume%20(postings%20and%20r%C3%A9sum%C3%A9s%20per%20month)%3A%0A%0AVetta%20is%20proprietary.%20Reading%20and%20private%20evaluation%20are%20free%3B%20use%20requires%20written%20permission.
+    about: Vetta is public to read, not to use. Copying, deploying, integrating or commercial use needs written permission — this opens a pre-filled email.
+  - name: 🔌 Ask about an API or ATS integration
+    url: mailto:thisisanoopshekhar89@gmail.com?subject=Vetta%20API%20%2F%20integration%20enquiry
+    about: The API is built per engagement rather than shipped blind. Tell me where your applications arrive and what you need it to do.
+  - name: ▶ Try the live demo first
+    url: https://vetta-vet-applicants.netlify.app/
+    about: Paste a job description and résumé text and see the checks run in your browser.
