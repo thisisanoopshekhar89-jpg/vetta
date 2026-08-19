@@ -266,13 +266,47 @@ decision. This tool narrows the gap; it does not close it.
 
 **Live demo: https://vetta-vet-applicants.netlify.app/**
 
-Paste a job description and résumé *text* and watch the match, injection, repetition,
-filler, implausible-metric and timeline checks run — entirely in your browser, nothing
-uploaded. Source for the page is [docs/index.html](docs/index.html).
+**Upload a real PDF or DOCX**, or paste plain text, alongside a job description. The
+page runs the match, hidden-text, injection, repetition, filler, implausible-metric and
+timeline checks and returns a verdict.
 
-It is deliberately a reduced preview: it cannot inspect a real PDF or DOCX for hidden
-text, because that needs document parsing rather than text analysis. That is what the
-desktop app does.
+Nothing is uploaded. The file is parsed **inside your browser** — the page makes no
+network requests at all, which is also what its Content-Security-Policy declares
+(`default-src 'none'`). Source is [docs/index.html](docs/index.html), self-contained in
+one file with no external scripts, styles or fonts.
+
+### How the browser can read a PDF with no library
+
+The page decodes documents using only what the platform already provides. PDF streams
+are unpacked through their `/Filter` chain — `ASCII85Decode`, `ASCIIHexDecode` and
+`FlateDecode` — with `DecompressionStream`, the same API used to inflate DOCX zip
+entries. It then walks the content stream's text operators and tracks the graphics
+state that decides whether a human can actually read a run: fill colour (`g`, `rg`,
+`k`, `sc`), font size (`Tf`), text render mode (`Tr`), position (`Tm`, `Td`) and the
+filled rectangles behind the text. Backgrounds are resolved *per position*, so a dark
+band behind one paragraph does not make the rest of the document look hidden — the same
+correction the Python engine carries. See [docs/docscan.js](docs/docscan.js).
+
+The scanner is pinned to the same fixtures as the engine, because a second
+implementation can drift from the first:
+
+    node docs/selftest.mjs
+
+### Where the preview still stops
+
+| | Browser demo | Desktop app |
+|---|---|---|
+| Hidden text in PDF and DOCX | ✅ | ✅ |
+| Injection, Unicode, quality, matching | ✅ (reduced sets) | ✅ full |
+| Documents at once | 1 | hundreds, ranked per role |
+| PDF report, workspace, routing, JSON, exit codes | ✗ | ✅ |
+| OCR for scanned or image-only files | ✗ | ✅ |
+| Unusual font encodings, disabled OCGs, image-over-text | best effort | full PDF engine |
+
+The demo reads text operators rather than rendering the page, so glyphs mapped through
+unusual or CID encodings can decode imperfectly, and a scanned document has no text
+layer for it to read at all. Treat it as a preview of the reasoning, not as the
+product's coverage.
 
 ## Documentation
 

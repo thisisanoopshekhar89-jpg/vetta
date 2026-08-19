@@ -373,7 +373,38 @@ Flask only for the app.
 python tests/test_screen.py       # core: 20 tests
 python tests/test_workspace.py    # workspace and reports: 27 tests
 python -m pytest -q               # or both under pytest
+node docs/selftest.mjs            # the browser scanner, same fixtures
 ```
+
+### The browser demo
+
+`docs/index.html` is a single self-contained page — no external script, style or font,
+and no network request of any kind, which its Content-Security-Policy states as
+`default-src 'none'`. `netlify-site/` is the same page plus headers and redirects;
+**keep the two copies identical.**
+
+It accepts an uploaded PDF or DOCX and parses it in the browser, so the hidden-text
+checks do fire. `docs/docscan.js` decodes streams through the `/Filter` chain
+(`ASCII85Decode`, `ASCIIHexDecode`, `FlateDecode`) with the platform's
+`DecompressionStream`, then walks the content stream's text operators, tracking fill
+colour, `Tf` size, `Tr` render mode, `Tm`/`Td` position and the filled rectangles behind
+each run. Two details it must keep right, both of which were bugs first:
+
+- **The stream dictionary is bounded at the object's own `obj` marker.** A fixed
+  byte lookback swallows the previous object's keys, and ReportLab's
+  `/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]` then reads as an image, so the
+  content stream gets skipped and the document appears to have no text at all.
+- **Backgrounds are resolved per position, not per page.** A dark band behind one
+  paragraph must not mark the whole document illegible. Getting this wrong reports
+  `hidden_ratio` 1.000 and blanks the visible reading.
+
+It is a second implementation of detection logic that already exists in Python, so it
+can drift. `docs/selftest.mjs` pins it to the same fixtures as the engine and compares
+hidden ratios with a 0.03 tolerance — the two normalise whitespace differently.
+
+The demo deliberately stops short of the product: one document at a time, no OCR, no
+PDF report, no workspace or routing, and best-effort handling of unusual font encodings
+where the app uses a full PDF engine. See the comparison table in the README.
 
 **Wiring into an existing ATS** — run `vetta screen --json` on upload and store
 the verdict and findings against the application record. Use exit codes to gate,
