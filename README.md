@@ -77,6 +77,24 @@ python -m vetta.cli cv.pdf --jd role.txt -v
 Exit codes: `0` clean, `1` findings at or above `--fail-on` (default `high`),
 `2` usage error. So it drops into a pipeline as a gate.
 
+## Desktop app
+
+For employers who would rather not touch a command line.
+
+```bash
+python app/app.py            # development, opens http://127.0.0.1:5099/
+python app/build_exe.py      # produces dist/Vetta.exe (~44 MB)
+```
+
+`Vetta.exe` is a single file and needs no Python on the machine. Double-click it and a
+browser opens on a local page: name the role, paste the job description, select the
+résumés you received. You get a ranked table with expandable findings per candidate and
+a **PDF report to download**.
+
+Résumés are written to a temporary folder for the scan and deleted immediately
+afterwards. No network calls, no telemetry — everything stays on that machine, which
+matters because these are other people's personal data.
+
 ## Scale
 
 Measured on one laptop, single-threaded, on **unique** documents (identical files are
@@ -199,8 +217,10 @@ python tests/test_screen.py     # no pytest needed
 python -m pytest -q             # or with pytest
 ```
 
-20 tests covering each hiding technique, the visible-text-only scoring guarantee,
-stopword filtering, false-positive resistance on ordinary prose, and CLI exit codes.
+**47 tests** — 20 in the core suite, 27 in the workspace suite. They cover each hiding
+technique, the visible-text-only scoring guarantee, stopword filtering, false-positive
+resistance on ordinary CV prose, timeline and repetition checks, the SQLite store,
+auto-routing, PDF report contents, and CLI exit codes. No pytest required.
 
 ## Deliberate limits
 

@@ -369,7 +369,7 @@ Flask only for the app.
 
 ```bash
 python tests/test_screen.py       # core: 20 tests
-python tests/test_workspace.py    # workspace: 23 tests
+python tests/test_workspace.py    # workspace and reports: 27 tests
 python -m pytest -q               # or both under pytest
 ```
 
