@@ -34,7 +34,7 @@ def _expand(patterns: list[str]) -> list[str]:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
-        prog="resume-screen",
+        prog="bonafide",
         description="Score résumés against a job description and flag hidden text, "
                     "prompt injection and screening malpractice.")
     ap.add_argument("resumes", nargs="+",

@@ -15,10 +15,10 @@ ROOT = os.path.dirname(HERE)
 SAMPLES = os.path.join(ROOT, "samples")
 sys.path.insert(0, ROOT)
 
-from screener.checks import scan_injection, scan_unicode          # noqa: E402
-from screener.malpractice import check_jd_mirroring, fingerprint  # noqa: E402
-from screener.match import jd_terms, score                        # noqa: E402
-from screener.screen import screen_one                            # noqa: E402
+from bonafide.checks import scan_injection, scan_unicode          # noqa: E402
+from bonafide.malpractice import check_jd_mirroring, fingerprint  # noqa: E402
+from bonafide.match import jd_terms, score                        # noqa: E402
+from bonafide.screen import screen_one                            # noqa: E402
 
 
 def _ensure_samples():
@@ -186,13 +186,13 @@ def test_unsupported_file_type_is_an_error_not_a_crash():
 def test_cli_exit_codes():
     _ensure_samples()
     clean = subprocess.run(
-        [sys.executable, "-m", "screener.cli", os.path.join(SAMPLES, "clean_resume.pdf"),
+        [sys.executable, "-m", "bonafide.cli", os.path.join(SAMPLES, "clean_resume.pdf"),
          "--jd", os.path.join(SAMPLES, "job_description.txt"), "--no-color"],
         cwd=ROOT, capture_output=True, text=True)
     assert clean.returncode == 0, clean.stdout[-500:]
 
     bad = subprocess.run(
-        [sys.executable, "-m", "screener.cli",
+        [sys.executable, "-m", "bonafide.cli",
          os.path.join(SAMPLES, "poisoned_resume.pdf"),
          "--jd", os.path.join(SAMPLES, "job_description.txt"), "--no-color"],
         cwd=ROOT, capture_output=True, text=True)
@@ -204,7 +204,7 @@ def test_cli_json_is_valid():
     import json
     _ensure_samples()
     p = subprocess.run(
-        [sys.executable, "-m", "screener.cli", os.path.join(SAMPLES, "poisoned_resume.pdf"),
+        [sys.executable, "-m", "bonafide.cli", os.path.join(SAMPLES, "poisoned_resume.pdf"),
          "--jd", os.path.join(SAMPLES, "job_description.txt"), "--json"],
         cwd=ROOT, capture_output=True, text=True)
     data = json.loads(p.stdout)

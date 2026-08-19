@@ -1,5 +1,5 @@
 [project]
-name = "resume-integrity-screener"
+name = "bonafide"
 version = "0.1.0"
 description = "Score resumes against a job description and flag hidden text, prompt injection and screening malpractice."
 readme = "README.md"
@@ -13,7 +13,7 @@ dependencies = ["PyMuPDF>=1.24"]
 samples = ["reportlab>=4.0"]
 
 [project.scripts]
-resume-screen = "screener.cli:main"
+bonafide = "bonafide.cli:main"
 
 [build-system]
 requires = ["setuptools>=68"]

@@ -1,4 +1,6 @@
-# Résumé Integrity Screener
+# Bonafide
+
+**Hold every résumé up to the light.**
 
 Score a résumé against a job description, and flag hidden text, prompt injection
 and screening malpractice in the same pass.
@@ -10,7 +12,7 @@ hands it to a model, that text is untrusted input — and nobody is reading the 
 the candidate hid.
 
 ```
-$ resume-screen candidates/ --jd role.txt
+$ bonafide candidates/ --jd role.txt
 
 ==============================================================================
 poisoned_resume.pdf   [FAIL]
@@ -45,8 +47,8 @@ screener, which rewards exactly the behaviour it should catch.
 ## Install
 
 ```bash
-git clone https://github.com/thisisanoopshekhar89-jpg/resume-integrity-screener
-cd resume-integrity-screener
+git clone https://github.com/thisisanoopshekhar89-jpg/bonafide
+cd bonafide
 pip install -r requirements.txt
 ```
 
@@ -57,19 +59,19 @@ generate the sample fixtures.
 
 ```bash
 # one résumé against a JD
-python -m screener.cli cv.pdf --jd role.txt
+python -m bonafide.cli cv.pdf --jd role.txt
 
 # a whole folder, ranked, with cross-document duplicate detection
-python -m screener.cli ./applications --jd role.txt
+python -m bonafide.cli ./applications --jd role.txt
 
 # integrity only, no JD
-python -m screener.cli cv.pdf
+python -m bonafide.cli cv.pdf
 
 # machine-readable, for an ATS hook or CI
-python -m screener.cli ./applications --jd role.txt --json > report.json
+python -m bonafide.cli ./applications --jd role.txt --json > report.json
 
 # explanations and the recovered hidden text
-python -m screener.cli cv.pdf --jd role.txt -v
+python -m bonafide.cli cv.pdf --jd role.txt -v
 ```
 
 Exit codes: `0` clean, `1` findings at or above `--fail-on` (default `high`),
@@ -129,7 +131,7 @@ into one number is how screeners get gamed.
 
 ```bash
 python samples/make_samples.py      # builds a clean CV, a poisoned CV, and a JD
-python -m screener.cli samples/ --jd samples/job_description.txt -v
+python -m bonafide.cli samples/ --jd samples/job_description.txt -v
 ```
 
 The fixtures are generated rather than committed, so the suite also proves the
