@@ -2,7 +2,23 @@
 
 **Vet the applicants.**
 
-[Live demo](https://vetta-vet-applicants.netlify.app/) · [Documentation](DOCS.md) · Licensing: thisisanoopshekhar89@gmail.com
+### ▶ [Try the live demo](https://vetta-vet-applicants.netlify.app/) &nbsp;·&nbsp; [Documentation](DOCS.md)
+
+> ## ⚠️ Read before you clone
+>
+> **Vetta is proprietary. It is public to read, not to use.**
+>
+> You are welcome to read the code, run the demo, and evaluate it. You may **not**
+> copy, clone-and-ship, modify, redistribute, deploy, host, integrate or use it
+> commercially — in whole or in part — **without written permission from the author**.
+>
+> Want to use it, pilot it in your hiring process, integrate it with your ATS, or talk
+> about an API? All welcome — just ask first:
+>
+> ### 📧 thisisanoopshekhar89@gmail.com
+>
+> Tell me the intended use, the organisation and the scope required. Full terms in
+> [LICENSE](LICENSE).
 
 Score a résumé against a job description, and flag hidden text, prompt injection
 and screening malpractice in the same pass.
