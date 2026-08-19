@@ -296,6 +296,88 @@ def test_cli_shorthand_not_confused_by_db_option():
             os.remove(db)
 
 
+# --- PDF report ---------------------------------------------------------------
+def test_pdf_report_contains_findings_and_evidence():
+    _ensure_samples()
+    import fitz
+    from vetta.pdfreport import build_pdf
+    from vetta.screen import screen_many
+
+    files = pipeline.find_resumes([SAMPLES])
+    results, batch = screen_many(files, _jd())
+    out = os.path.join(tempfile.gettempdir(), "vetta_test_report.pdf")
+    try:
+        build_pdf(results, out, role="Business Analyst", jd_excerpt=_jd(),
+                  batch_findings=batch)
+        assert os.path.getsize(out) > 5000
+        d = fitz.open(out)
+        text = "".join(d[i].get_text() for i in range(d.page_count))
+        d.close()
+        assert "Screening report" in text
+        assert "Ranked by match" in text
+        # the recovered payload must appear verbatim, not just be counted
+        assert "Ignore previous instructions" in text
+        assert "Hidden text recovered" in text
+        # the caveat has to travel with the report
+        assert "visible text only" in text
+        assert "thisisanoopshekhar89@gmail.com" in text
+    finally:
+        if os.path.exists(out):
+            os.remove(out)
+
+
+def test_pdf_report_handles_single_resume_without_jd():
+    _ensure_samples()
+    from vetta.pdfreport import build_pdf
+    from vetta.screen import screen_one
+
+    r = screen_one(os.path.join(SAMPLES, "clean_resume.pdf"))
+    out = os.path.join(tempfile.gettempdir(), "vetta_test_single.pdf")
+    try:
+        build_pdf([r], out)
+        assert os.path.getsize(out) > 2000
+    finally:
+        if os.path.exists(out):
+            os.remove(out)
+
+
+def test_workspace_pdf_from_stored_rows():
+    _ensure_samples()
+    import fitz
+    from vetta.pdfreport import build_workspace_pdf
+    db = _tmp_db()
+    out = os.path.join(tempfile.gettempdir(), "vetta_test_ws.pdf")
+    try:
+        with Store(db) as st:
+            st.add_posting("BA-001", "Business Analyst", _jd())
+            pipeline.intake(st, [SAMPLES], posting_code="BA-001")
+            build_workspace_pdf(st, out, cross=pipeline.cross_posting_findings(st))
+        d = fitz.open(out)
+        text = "".join(d[i].get_text() for i in range(d.page_count))
+        d.close()
+        assert "Business Analyst" in text
+        assert "Screening report" in text
+    finally:
+        for p in (db, out):
+            if os.path.exists(p):
+                os.remove(p)
+
+
+def test_cli_pdf_flag():
+    _ensure_samples()
+    out = os.path.join(tempfile.gettempdir(), "vetta_cli_test.pdf")
+    try:
+        r = subprocess.run([sys.executable, "-m", "vetta.cli", "screen", SAMPLES,
+                            "--jd", os.path.join(SAMPLES, "job_description.txt"),
+                            "--pdf", out], cwd=ROOT, capture_output=True, text=True)
+        assert r.returncode in (0, 1), r.stderr        # 1 = findings present
+        assert os.path.exists(out), r.stdout + r.stderr
+        assert "PDF report written" in r.stdout
+    finally:
+        if os.path.exists(out):
+            os.remove(out)
+
+
 if __name__ == "__main__":
     passed = failed = 0
     for name, fn in sorted(list(globals().items())):

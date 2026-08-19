@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import math
 import re
+from functools import lru_cache
 from dataclasses import dataclass, field
 
 STOPWORDS = set("""
@@ -80,8 +81,22 @@ def normalise(text: str) -> str:
     return re.sub(r"\s+", " ", text)
 
 
+@lru_cache(maxsize=512)
+def _jd_terms_cached(jd: str, cap: int) -> tuple:
+    return tuple(_jd_terms_uncached(jd, cap).items())
+
+
 def jd_terms(jd: str, cap: int = 60) -> dict[str, float]:
-    """Weighted requirement terms from a JD. Weight rises with repetition."""
+    """Weighted requirement terms from a JD, memoised.
+
+    Auto-routing scores one résumé against every open posting, so this is
+    called postings x résumés times per intake. Caching turns that into one
+    computation per distinct JD.
+    """
+    return dict(_jd_terms_cached(jd, cap))
+
+
+def _jd_terms_uncached(jd: str, cap: int = 60) -> dict[str, float]:
     flat = normalise(jd)
     weights: dict[str, float] = {}
 

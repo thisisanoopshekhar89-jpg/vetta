@@ -14,9 +14,10 @@ import os
 import sys
 import tempfile
 import threading
+import time
 import webbrowser
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_from_directory
 
 # Allow running both from the repo and from inside a PyInstaller bundle.
 if __package__ in (None, ""):
@@ -24,6 +25,7 @@ if __package__ in (None, ""):
 
 from vetta import pipeline                      # noqa: E402
 from vetta.dashboard import render_html         # noqa: E402
+from vetta.pdfreport import build_pdf           # noqa: E402
 from vetta.screen import screen_many, screen_one  # noqa: E402
 
 FROZEN = getattr(sys, "frozen", False)
@@ -47,7 +49,7 @@ app.config["MAX_CONTENT_LENGTH"] = 256 * 1024 * 1024      # 256 MB of résumés
 
 def _render(**kw):
     base = dict(results=None, batch=None, jd="", error=None, report=None,
-                counts=None, jd_title="")
+                counts=None, jd_title="", pdf_name=None)
     base.update(kw)
     return render_template("index.html", **base)
 
@@ -98,8 +100,19 @@ def do_screen():
                   "review": sum(1 for r in results if r.verdict == "review"),
                   "fail": sum(1 for r in results if r.verdict == "fail"),
                   "error": sum(1 for r in results if r.verdict == "error")}
+
+        # A filed report is the point of this for most employers, so always
+        # produce the PDF and offer it rather than making them ask.
+        pdf_name = "Vetta_report_%s.pdf" % time.strftime("%Y%m%d_%H%M%S")
+        try:
+            build_pdf(results, os.path.join(OUT_DIR, pdf_name),
+                      role=jd_title, jd_excerpt=jd, batch_findings=batch)
+        except Exception as exc:            # a report failure must not lose the results
+            print("  PDF report failed: %s: %s" % (type(exc).__name__, exc))
+            pdf_name = None
+
         return _render(results=results, batch=batch, jd=jd, jd_title=jd_title,
-                       counts=counts)
+                       counts=counts, pdf_name=pdf_name)
     finally:
         for p in paths:
             try:
@@ -110,6 +123,14 @@ def do_screen():
             os.rmdir(tmp)
         except OSError:
             pass
+
+
+@app.route("/report/<path:name>")
+def report(name: str):
+    """Serve a generated PDF report. Filenames are generated, never user-supplied."""
+    if "/" in name or "\\" in name or ".." in name:
+        return "not found", 404
+    return send_from_directory(OUT_DIR, name, as_attachment=True)
 
 
 def main() -> None:

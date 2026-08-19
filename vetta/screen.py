@@ -56,13 +56,21 @@ class ScreenResult:
         }
 
 
-def screen_one(path: str, jd: str = "", candidate_name: str = "") -> ScreenResult:
-    """Extract, score against the JD, then run every integrity check."""
-    try:
-        ex = extract(path)
-    except Exception as exc:                       # unreadable or unsupported file
-        return ScreenResult(file=os.path.basename(path), match=MatchResult(),
-                            error="%s: %s" % (type(exc).__name__, exc))
+def screen_one(path: str, jd: str = "", candidate_name: str = "",
+               ex=None) -> ScreenResult:
+    """Extract, score against the JD, then run every integrity check.
+
+    Pass `ex` when the caller has already extracted the document; extraction
+    is the most expensive step, so the batch path reuses one Extraction
+    instead of repeating it.
+    """
+    if ex is None:
+        try:
+            ex = extract(path)
+        except Exception as exc:                   # unreadable or unsupported
+            return ScreenResult(file=os.path.basename(path),
+                                match=MatchResult(),
+                                error="%s: %s" % (type(exc).__name__, exc))
 
     m = score(jd, ex.visible_text, ex.hidden_text) if jd else MatchResult()
 

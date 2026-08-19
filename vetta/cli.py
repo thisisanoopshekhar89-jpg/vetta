@@ -17,6 +17,7 @@ import sys
 
 from . import pipeline
 from .dashboard import render_html
+from .pdfreport import build_pdf, build_workspace_pdf
 from .report import render_json, render_text
 from .screen import screen_many, screen_one
 from .store import DEFAULT_DB, Store
@@ -47,9 +48,14 @@ def cmd_screen(args) -> int:
     else:
         results, batch = screen_many(paths, jd)
 
+    if args.pdf:
+        build_pdf(results, args.pdf, role=args.role or "", jd_excerpt=jd,
+                  batch_findings=batch)
+        print("PDF report written: %s (%d bytes)"
+              % (args.pdf, os.path.getsize(args.pdf)))
     if args.json:
         print(render_json(results, batch))
-    else:
+    elif not args.pdf or args.verbose:
         color = not args.no_color and sys.stdout.isatty()
         print(render_text(results, batch, color=color, verbose=args.verbose))
 
@@ -187,6 +193,11 @@ def cmd_flags(args) -> int:
 def cmd_report(args) -> int:
     with Store(args.db) as st:
         cross = pipeline.cross_posting_findings(st)
+        if args.pdf:
+            build_workspace_pdf(st, args.pdf, cross=cross)
+            print("PDF report written: %s (%d bytes)"
+                  % (args.pdf, os.path.getsize(args.pdf)))
+            return EXIT_CLEAN
         if args.json:
             data = {
                 "stats": st.stats(),
@@ -231,6 +242,8 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--jd-text", metavar="TEXT")
     s.add_argument("--name", metavar="NAME")
     s.add_argument("--json", action="store_true")
+    s.add_argument("--pdf", metavar="FILE", help="write a PDF screening report")
+    s.add_argument("--role", metavar="TITLE", help="role name to print on the PDF")
     s.add_argument("-v", "--verbose", action="store_true")
     s.add_argument("--no-color", action="store_true")
     s.add_argument("--fail-on", choices=("high", "medium", "low", "never"),
@@ -276,6 +289,7 @@ def build_parser() -> argparse.ArgumentParser:
     rp = sub.add_parser("report", help="HTML or JSON report across all postings")
     rp.add_argument("--out", metavar="FILE")
     rp.add_argument("--json", action="store_true")
+    rp.add_argument("--pdf", metavar="FILE", help="write a PDF report instead of HTML")
     rp.set_defaults(func=cmd_report)
 
     stt = sub.add_parser("stats", help="workspace counts")

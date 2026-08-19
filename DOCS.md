@@ -18,8 +18,9 @@ Not to be copied, deployed or integrated without written permission —
 6. [Finding codes](#6-finding-codes)
 7. [Scoring](#7-scoring)
 8. [Python API](#8-python-api)
-9. [Deployment notes](#9-deployment-notes)
-10. [Limits and responsible use](#10-limits-and-responsible-use)
+9. [Scale](#9-scale)
+10. [Deployment notes](#10-deployment-notes)
+11. [Limits and responsible use](#11-limits-and-responsible-use)
 
 ---
 
@@ -97,6 +98,27 @@ received, and you get a ranked table with expandable findings per candidate.
 Résumés are written to a temporary folder for the duration of the scan and deleted
 immediately afterwards. There are no network calls and no telemetry — everything
 stays on the machine, which matters because these are other people's personal data.
+
+### Reports
+
+Three output formats, from the same screening pass:
+
+```bash
+vetta screen ./applications --jd role.txt --pdf report.pdf --role "Business Analyst"
+vetta report --out dashboard.html          # workspace-wide HTML
+vetta report --pdf workspace.pdf           # workspace-wide PDF
+vetta screen cv.pdf --jd role.txt --json   # machine-readable
+```
+
+The **PDF report** is the one to hand a hiring manager. A summary page ranks every
+candidate by match with their integrity verdict, then each candidate gets their own
+page: performance against the job description term by term (evidenced versus not),
+every finding with its severity and evidence, and any hidden text reproduced verbatim
+so the reader can judge it themselves. Requirement terms that appeared *only* in hidden
+text are listed separately as excluded from the score.
+
+The desktop app builds the same PDF automatically after every batch and offers it as a
+download.
 
 ## 4. Command reference
 
@@ -304,7 +326,41 @@ and `meta`, plus `rank()` for threshold comparisons.
 - **New JD phrases** — add to `PHRASES` in `match.py`.
 - **New checks** — return `list[Finding]` and call it from `screen_one()`.
 
-## 9. Deployment notes
+## 9. Scale
+
+Measured on one laptop, single-threaded, on **unique** documents (identical files are
+content-hashed and skipped, which flatters any benchmark that reuses one file):
+
+| Operation | Cost | At 100 postings x 500 résumés |
+|---|---|---|
+| Screen one résumé | ~14 ms | ≈ 7 seconds |
+| Route a résumé to its best-fit posting | ~19 ms at 100 postings | ≈ 10 seconds |
+| Cross-pool checks | 0.13 s per 100 postings x 60 submissions | seconds, not minutes |
+| Re-running an unchanged batch | skipped | only new or changed files are screened |
+
+That is roughly **4,000 résumés a minute** per core.
+
+Postings and résumés multiply only during automatic routing, since each résumé is
+scored against every open posting. Job-description analysis is memoised, so adding a
+posting costs one cheap comparison rather than a fresh analysis — measured, that took
+routing from 43 ms to 19 ms per résumé at 100 postings. The cross-pool pass reads
+postings once instead of querying per iteration, which took it from 2.42 s to 0.13 s.
+
+Storage is SQLite, so a workspace is one portable file and needs no server. If you
+outgrow that, the screening step is stateless and embarrassingly parallel — the work
+shards cleanly by file.
+
+### How résumés get in
+
+**Manual, by design, for now.** An employer pastes or points at the job description
+and selects the résumés received — in the desktop app, or via `intake` on the command
+line. There is no inbox polling, no job-board integration and no hosted endpoint.
+
+An **API and ATS integration are available on request** rather than shipped blind: the
+useful shape depends on where your applications actually arrive. Get in touch and it
+gets built for that.
+
+## 10. Deployment notes
 
 **Requirements** — Python 3.10+, PyMuPDF. ReportLab only for generating fixtures,
 Flask only for the app.
@@ -326,7 +382,7 @@ sufficient. Also separate instructions from data in the prompt, never let extrac
 document text occupy the system role, and keep a human on the decision. Vetta
 narrows the gap; it does not close it.
 
-## 10. Limits and responsible use
+## 11. Limits and responsible use
 
 - **Not a lie detector.** It finds manipulation of the *document*, not false claims
   in it. A fabricated job history is invisible here. The `quality` checks flag

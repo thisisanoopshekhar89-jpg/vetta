@@ -1,5 +1,8 @@
 # Core: PDF parsing and per-glyph inspection
 PyMuPDF>=1.24
 
-# Only needed to generate the sample fixtures in samples/
+# PDF screening reports, and the sample fixtures in samples/
 reportlab>=4.0
+
+# Desktop app only (app/app.py); the CLI does not need it
+flask>=3.0

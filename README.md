@@ -77,6 +77,40 @@ python -m vetta.cli cv.pdf --jd role.txt -v
 Exit codes: `0` clean, `1` findings at or above `--fail-on` (default `high`),
 `2` usage error. So it drops into a pipeline as a gate.
 
+## Scale
+
+Measured on one laptop, single-threaded, on **unique** documents (identical files are
+content-hashed and skipped, which flatters any benchmark that reuses one file):
+
+| Operation | Cost | At 100 postings x 500 résumés |
+|---|---|---|
+| Screen one résumé | ~14 ms | ≈ 7 seconds |
+| Route a résumé to its best-fit posting | ~19 ms at 100 postings | ≈ 10 seconds |
+| Cross-pool checks | 0.13 s per 100 postings x 60 submissions | seconds, not minutes |
+| Re-running an unchanged batch | skipped | only new or changed files are screened |
+
+That is roughly **4,000 résumés a minute** per core.
+
+Postings and résumés multiply only during automatic routing, since each résumé is
+scored against every open posting. Job-description analysis is memoised, so adding a
+posting costs one cheap comparison rather than a fresh analysis — measured, that took
+routing from 43 ms to 19 ms per résumé at 100 postings. The cross-pool pass reads
+postings once instead of querying per iteration, which took it from 2.42 s to 0.13 s.
+
+Storage is SQLite, so a workspace is one portable file and needs no server. If you
+outgrow that, the screening step is stateless and embarrassingly parallel — the work
+shards cleanly by file.
+
+## How résumés get in
+
+**Manual, by design, for now.** An employer pastes or points at the job description
+and selects the résumés received — in the desktop app, or via `intake` on the command
+line. There is no inbox polling, no job-board integration and no hosted endpoint.
+
+An **API and ATS integration are available on request** rather than shipped blind: the
+useful shape depends on where your applications actually arrive. Get in touch and it
+gets built for that.
+
 ## What it detects
 
 **Hidden text — PDF**
@@ -117,6 +151,27 @@ Latin words carrying Cyrillic or Greek lookalikes.
 - JD mirroring — long verbatim runs copied from the job description
 - Metadata: author/candidate mismatch, tooling traces, timestamp anomalies
 - Batch duplicates — near-identical content submitted under different names
+
+## Reports
+
+Three output formats, from the same screening pass:
+
+```bash
+vetta screen ./applications --jd role.txt --pdf report.pdf --role "Business Analyst"
+vetta report --out dashboard.html          # workspace-wide HTML
+vetta report --pdf workspace.pdf           # workspace-wide PDF
+vetta screen cv.pdf --jd role.txt --json   # machine-readable
+```
+
+The **PDF report** is the one to hand a hiring manager. A summary page ranks every
+candidate by match with their integrity verdict, then each candidate gets their own
+page: performance against the job description term by term (evidenced versus not),
+every finding with its severity and evidence, and any hidden text reproduced verbatim
+so the reader can judge it themselves. Requirement terms that appeared *only* in hidden
+text are listed separately as excluded from the score.
+
+The desktop app builds the same PDF automatically after every batch and offers it as a
+download.
 
 ## Verdicts
 
@@ -167,6 +222,13 @@ Treat résumé text as untrusted input, the same as a web page. Screening it is
 necessary but not sufficient — also separate instructions from data in your prompt,
 never let extracted document text occupy the system role, and keep a human on the
 decision. This tool narrows the gap; it does not close it.
+
+## Try it in a browser
+
+A limited preview runs in the browser at **[the demo page](docs/index.html)** — paste a
+job description and résumé *text* and see the match, injection, repetition, filler and
+timeline checks fire. It cannot inspect a real PDF or DOCX for hidden text, because that
+needs document parsing; the app does that part.
 
 ## Documentation
 

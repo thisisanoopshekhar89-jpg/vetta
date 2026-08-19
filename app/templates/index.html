@@ -111,6 +111,18 @@ padding-top:14px}
     <div class="tile"><b>{{ counts.error }}</b><span>Unreadable</span></div>{% endif %}
   </div>
 
+  {% if pdf_name %}
+    <div class="card" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <div style="flex:1 1 340px">
+        <b>PDF screening report ready</b>
+        <div class="muted">Per candidate: performance against the job description term
+        by term, every integrity finding with its evidence, and any hidden text
+        recovered verbatim.</div>
+      </div>
+      <a href="/report/{{ pdf_name }}"><button type="button">Download PDF report</button></a>
+    </div>
+  {% endif %}
+
   <h2>Ranked by match</h2>
   <table>
     <tr><th>#</th><th>Candidate</th><th>File</th><th>Match</th><th>Integrity</th>

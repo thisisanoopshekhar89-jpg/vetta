@@ -53,15 +53,20 @@ class IntakeOutcome:
     note: str = ""
 
 
-def route(store: Store, path: str, min_score: int = 20) -> tuple[str, int]:
-    """Pick the open posting whose JD best fits this résumé's visible text."""
+def route(store: Store, path: str, min_score: int = 20, ex=None) -> tuple[str, int]:
+    """Pick the open posting whose JD best fits this résumé's visible text.
+
+    Pass `ex` to avoid re-extracting; jd_terms is memoised, so scoring one résumé
+    against N postings costs N cheap comparisons rather than N JD analyses.
+    """
     posts = store.postings(status="open")
     if not posts:
         return "", 0
-    try:
-        ex = extract(path)
-    except Exception:
-        return "", 0
+    if ex is None:
+        try:
+            ex = extract(path)
+        except Exception:
+            return "", 0
     best, best_score = "", -1
     for p in posts:
         s = score(p["jd_text"], ex.visible_text, ex.hidden_text).score
@@ -80,10 +85,22 @@ def intake(store: Store, paths: list[str], posting_code: str = "",
     results: list[IntakeOutcome] = []
 
     for path in files:
+        # Extract once per file. Routing, screening and identity all read from it.
+        ex = None
+        try:
+            ex = extract(path)
+        except Exception as exc:
+            results.append(IntakeOutcome(
+                path=path, action="error",
+                note="%s: %s" % (type(exc).__name__, exc)))
+            if progress:
+                progress(results[-1])
+            continue
+
         code = posting_code
         routed_score = 0
         if auto or not code:
-            code, routed_score = route(store, path)
+            code, routed_score = route(store, path, ex=ex)
             if not code:
                 results.append(IntakeOutcome(
                     path=path, action="unroutable",
@@ -109,14 +126,8 @@ def intake(store: Store, paths: list[str], posting_code: str = "",
                 progress(results[-1])
             continue
 
-        res = screen_one(path, posting["jd_text"])
-        ident = {"name": "", "email": "", "phone": "", "label": os.path.basename(path)}
-        if not res.error:
-            try:
-                ex = extract(path)
-                ident = extract_identity(ex.visible_text, path)
-            except Exception:
-                pass
+        res = screen_one(path, posting["jd_text"], ex=ex)
+        ident = extract_identity(ex.visible_text, path)
         cand_id = store.upsert_candidate(ident["name"], ident["email"], ident["phone"])
         store.save_submission(posting["id"], posting["jd_hash"], path, fh, res, cand_id)
 
@@ -197,16 +208,20 @@ def cross_posting_findings(store: Store) -> list[Finding]:
                 meta={"postings": sorted(codes)}))
 
     # Hidden text aimed at a different posting's requirements than the one applied to.
+    # Postings and their JD text are read once: this loop is submissions x postings,
+    # so a query inside it would dominate everything else at scale.
+    all_posts = store.postings()
+    jd_by_code = {p["code"]: p["jd_text"] for p in all_posts}
     for s in subs:
         hid = (s["hidden_text"] or "").strip()
         if not hid:
             continue
         applied = s["posting_code"]
-        for p in store.postings():
+        mine = score(jd_by_code.get(applied, ""), "", hid)
+        for p in all_posts:
             if p["code"] == applied:
                 continue
             other = score(p["jd_text"], "", hid)
-            mine = score(store.get_posting(applied)["jd_text"], "", hid)
             if other.hidden_only and len(other.hidden_only) > len(mine.hidden_only) + 2:
                 out.append(Finding(
                     code="HIDDEN_TEXT_TARGETS_OTHER_ROLE", severity=MEDIUM,

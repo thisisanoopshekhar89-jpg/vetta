@@ -43,18 +43,19 @@ def main() -> int:
         "--hidden-import", "vetta.pipeline",
         "--hidden-import", "vetta.quality",
         "--hidden-import", "vetta.store",
+        "--hidden-import", "vetta.pdfreport",
+        "--hidden-import", "reportlab.pdfbase._fontdata",
         "--paths", ROOT,
         # reportlab is only used by the sample generator, not the app.
         # Excluded deliberately: none of these are used by the app, but they get
         # pulled in transitively and cost hundreds of MB in a onefile build.
-        "--exclude-module", "reportlab",
         "--exclude-module", "tkinter",
         "--exclude-module", "pytest",
+        # PIL is NOT excluded: reportlab imports it, and the app builds PDF reports.
         "--exclude-module", "numpy",
         "--exclude-module", "pandas",
         "--exclude-module", "scipy",
         "--exclude-module", "matplotlib",
-        "--exclude-module", "PIL",
         "--exclude-module", "IPython",
         "--exclude-module", "notebook",
         "--exclude-module", "sqlalchemy",
