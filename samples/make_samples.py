@@ -116,6 +116,56 @@ def poisoned_pdf(path):
     return path
 
 
+PADDED = [
+    "Dev Kapoor",
+    "dev.kapoor@example.com  |  +44 7700 900456  |  Birmingham, UK",
+    "",
+    "Summary",
+    "Results-driven and highly motivated seasoned professional with 20+ years",
+    "experience. A proven track record and excellent communication skills. A true",
+    "team player and self-starter who can hit the ground running and think outside",
+    "the box. Detail-oriented, hard working, and passionate about delivering value.",
+    "",
+    "Experience",
+    "Operations Consultant, Meridian Partners, 2021 to present",
+    "  Responsible for supporting business operations and process activities daily.",
+    "  Familiar with a wide range of tools and methodologies across the business.",
+    "  Increased operational efficiency by 4200% through best-of-breed practices.",
+    "",
+    "Operations Analyst, Calder Services, 2019 to 2021",
+    "  Responsible for supporting business operations and process activities daily.",
+    "  Familiar with a wide range of tools and methodologies across the business.",
+    "  Single-handedly revolutionised the entire reporting function.",
+    "",
+    "Process Associate, Brightwell Ltd, 2018 to 2019",
+    "  Responsible for supporting business operations and process activities daily.",
+    "  Exposure to various systems and good knowledge of industry best practice.",
+    "",
+    "Skills",
+    ("Python, SQL, Excel, Power BI, Tableau, Qlik, Looker, SAP, Oracle, Dynamics, "
+     "Salesforce, HubSpot, Asana, Jira, Trello, Monday, Slack, Teams, Zoom, Visio, "
+     "Lucidchart, Miro, Figma, Notion, Airtable, Zapier, n8n, Make, UiPath, "
+     "Automation Anywhere, Blue Prism, Alteryx, Snowflake, Databricks, AWS, Azure, "
+     "GCP, Docker, Kubernetes, Terraform, Git, Jenkins, Kafka, Spark, Hadoop"),
+    "",
+    "Education",
+    "BA Business Studies, 2018",
+]
+
+
+def padded_pdf(path):
+    """Visible but hollow: recycled bullets, filler, an impossible metric, and a
+    20-year claim the dates on the page cannot support. Nothing is hidden here —
+    this fixture exercises the claim-level checks, not the document ones."""
+    c = canvas.Canvas(path, pagesize=A4)
+    c.setAuthor("Dev Kapoor")
+    c.setTitle("Dev Kapoor - CV")
+    _draw(c, PADDED, size=9.6, leading=13.4)
+    c.showPage()
+    c.save()
+    return path
+
+
 DOCX_DOC = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
 <w:body>
@@ -193,6 +243,7 @@ def main():
         clean_pdf(os.path.join(HERE, "clean_resume.pdf")),
         poisoned_pdf(os.path.join(HERE, "poisoned_resume.pdf")),
         poisoned_docx(os.path.join(HERE, "poisoned_resume.docx")),
+        padded_pdf(os.path.join(HERE, "padded_resume.pdf")),
     ]
     jd_path = os.path.join(HERE, "job_description.txt")
     with open(jd_path, "w", encoding="utf-8") as fh:

@@ -13,3 +13,8 @@ build/
 samples/*.pdf
 samples/*.docx
 report.json
+
+# build artefacts
+Bonafide.spec
+Vetta.spec
+*.db

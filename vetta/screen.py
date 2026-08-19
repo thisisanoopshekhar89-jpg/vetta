@@ -5,9 +5,10 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 
-from . import malpractice
+from . import malpractice, quality
 from .checks import HIGH, MEDIUM, Finding, scan_injection, scan_unicode
 from .extract import extract
+from .identity import extract_identity
 from .match import MatchResult, score
 
 
@@ -21,6 +22,7 @@ class ScreenResult:
     fingerprint: str = ""
     hidden_text: str = ""
     hidden_ratio: float = 0.0
+    identity: dict = field(default_factory=dict)
     error: str = ""
 
     @property
@@ -47,6 +49,7 @@ class ScreenResult:
             "hidden_ratio": round(self.hidden_ratio, 4),
             "hidden_text": self.hidden_text[:2000],
             "fingerprint": self.fingerprint,
+            "identity": self.identity,
             "counts": self.counts(),
             "findings": [f.as_dict() for f in self.findings],
             "error": self.error,
@@ -77,6 +80,9 @@ def screen_one(path: str, jd: str = "", candidate_name: str = "") -> ScreenResul
     if jd:
         findings += malpractice.check_jd_mirroring(jd, ex.visible_text)
 
+    # Claim-level quality: padding, recycled bullets, filler, impossible numbers.
+    findings += quality.run_all(ex.visible_text)
+
     if m.hidden_only:
         findings.append(Finding(
             code="HIDDEN_KEYWORDS_SCORED_ZERO", severity=HIGH,
@@ -94,6 +100,7 @@ def screen_one(path: str, jd: str = "", candidate_name: str = "") -> ScreenResul
         file=os.path.basename(path), match=m, findings=findings, pages=ex.pages,
         kind=ex.kind, fingerprint=malpractice.fingerprint(ex.visible_text),
         hidden_text=ex.hidden_text, hidden_ratio=ex.hidden_ratio,
+        identity=extract_identity(ex.visible_text, path),
     )
 
 

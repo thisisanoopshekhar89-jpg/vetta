@@ -1,21 +1,60 @@
-MIT License
+Vetta — Proprietary Software Licence
+Copyright (c) 2026 Anoop Shekhar. All rights reserved.
 
-Copyright (c) 2026 Anoop Shekhar
+This software and its documentation ("the Software") are the exclusive property of
+Anoop Shekhar. The Software is made available for viewing and evaluation only.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+PERMISSION IS REQUIRED
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+No licence, express or implied, is granted to any person to copy, reproduce,
+modify, adapt, merge, publish, distribute, sublicence, sell, host, deploy, or
+create derivative works from the Software, in whole or in part, without the prior
+written permission of the copyright holder.
+
+You may NOT, without written permission:
+
+  - copy or redistribute the Software or any portion of its source code
+  - use the Software, or any part of it, in a commercial product or service
+  - deploy the Software internally within an organisation
+  - incorporate its methods, detection logic or code into another project
+  - remove, alter or obscure this notice or the copyright attribution
+
+You MAY, without seeking permission:
+
+  - read the source code and documentation
+  - evaluate the Software privately in order to decide whether to request a licence
+  - cite or reference the project publicly, with attribution to the author
+
+REQUESTING PERMISSION
+
+To request a licence for commercial use, internal deployment, integration,
+research, or any form of redistribution, contact:
+
+    Anoop Shekhar
+    thisisanoopshekhar89@gmail.com
+
+Please state the intended use, the organisation involved, and the scope required.
+Requests are considered individually. Permission, where granted, will be given in
+writing and may be subject to terms including fees.
+
+CONTRIBUTIONS
+
+Contributions are accepted only by prior arrangement. By submitting a contribution
+you assign copyright in that contribution to the copyright holder, unless agreed
+otherwise in writing.
+
+NO WARRANTY
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHOR BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+RESPONSIBLE USE
+
+The Software reports signals for human review. It does not determine the honesty
+of any candidate, and its output must not be used as the sole basis for a hiring
+decision. Responsibility for any decision taken using the Software rests entirely
+with the user.

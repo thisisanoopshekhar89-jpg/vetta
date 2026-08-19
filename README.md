@@ -1,6 +1,6 @@
-# Bonafide
+# Vetta
 
-**Hold every résumé up to the light.**
+**Vet the applicants.**
 
 Score a résumé against a job description, and flag hidden text, prompt injection
 and screening malpractice in the same pass.
@@ -12,7 +12,7 @@ hands it to a model, that text is untrusted input — and nobody is reading the 
 the candidate hid.
 
 ```
-$ bonafide candidates/ --jd role.txt
+$ vetta candidates/ --jd role.txt
 
 ==============================================================================
 poisoned_resume.pdf   [FAIL]
@@ -47,8 +47,8 @@ screener, which rewards exactly the behaviour it should catch.
 ## Install
 
 ```bash
-git clone https://github.com/thisisanoopshekhar89-jpg/bonafide
-cd bonafide
+git clone https://github.com/thisisanoopshekhar89-jpg/vetta
+cd vetta
 pip install -r requirements.txt
 ```
 
@@ -59,19 +59,19 @@ generate the sample fixtures.
 
 ```bash
 # one résumé against a JD
-python -m bonafide.cli cv.pdf --jd role.txt
+python -m vetta.cli cv.pdf --jd role.txt
 
 # a whole folder, ranked, with cross-document duplicate detection
-python -m bonafide.cli ./applications --jd role.txt
+python -m vetta.cli ./applications --jd role.txt
 
 # integrity only, no JD
-python -m bonafide.cli cv.pdf
+python -m vetta.cli cv.pdf
 
 # machine-readable, for an ATS hook or CI
-python -m bonafide.cli ./applications --jd role.txt --json > report.json
+python -m vetta.cli ./applications --jd role.txt --json > report.json
 
 # explanations and the recovered hidden text
-python -m bonafide.cli cv.pdf --jd role.txt -v
+python -m vetta.cli cv.pdf --jd role.txt -v
 ```
 
 Exit codes: `0` clean, `1` findings at or above `--fail-on` (default `high`),
@@ -131,7 +131,7 @@ into one number is how screeners get gamed.
 
 ```bash
 python samples/make_samples.py      # builds a clean CV, a poisoned CV, and a JD
-python -m bonafide.cli samples/ --jd samples/job_description.txt -v
+python -m vetta.cli samples/ --jd samples/job_description.txt -v
 ```
 
 The fixtures are generated rather than committed, so the suite also proves the
@@ -168,6 +168,25 @@ necessary but not sufficient — also separate instructions from data in your pr
 never let extracted document text occupy the system role, and keep a human on the
 decision. This tool narrows the gap; it does not close it.
 
-## Licence
+## Documentation
 
-MIT — see [LICENSE](LICENSE).
+Full documentation is in **[DOCS.md](DOCS.md)** — how it works, the complete command
+reference, the workspace data model, every finding code with its severity, the
+scoring method, the Python API, deployment notes, and the limits of what these
+checks can honestly tell you.
+
+## Licence and permission
+
+**Vetta is proprietary software. Copyright © 2026 Anoop Shekhar. All rights reserved.**
+
+You may read the source and evaluate it privately. You may **not** copy,
+redistribute, modify, deploy, host, integrate or use it commercially — in whole or
+in part — without prior written permission.
+
+To request a licence for commercial use, internal deployment, integration or
+research, contact:
+
+**Anoop Shekhar — thisisanoopshekhar89@gmail.com**
+
+State the intended use, the organisation, and the scope required. Full terms are in
+[LICENSE](LICENSE).
