@@ -26,7 +26,8 @@ from vetta.screen import screen_one                            # noqa: E402
 
 def _ensure_samples():
     need = ["clean_resume.pdf", "poisoned_resume.pdf", "poisoned_resume.docx",
-            "dark_on_dark_resume.pdf", "job_description.txt"]
+            "dark_on_dark_resume.pdf", "hidden_layer_resume.pdf",
+            "job_description.txt"]
     if not all(os.path.exists(os.path.join(SAMPLES, n)) for n in need):
         subprocess.run([sys.executable, os.path.join(SAMPLES, "make_samples.py")],
                        check=True, capture_output=True)
@@ -81,6 +82,43 @@ def test_dark_text_on_dark_background_is_caught():
     assert "Ignore previous instructions" in r.hidden_text
     details = " ".join(f.detail for f in r.findings if f.code == "HIDDEN_TEXT_PDF")
     assert "dark background" in details, details
+
+
+def test_disabled_layer_text_is_read_not_just_noticed():
+    """A layer that is off by default has to be switched on to be read.
+
+    MuPDF honours the off state, so this text is absent from ordinary extraction
+    entirely. Noting that a disabled layer exists was not enough: the injection
+    phrases sitting on it were never scanned, the hidden ratio stayed at zero,
+    and the document came back as review rather than fail.
+    """
+    _ensure_samples()
+    r = screen_one(os.path.join(SAMPLES, "hidden_layer_resume.pdf"), _jd())
+    assert r.verdict == "fail", [f.code for f in r.findings]
+    assert "Ignore previous instructions" in r.hidden_text
+    assert r.hidden_ratio > 0.02, r.hidden_ratio
+    codes = [f.code for f in r.findings]
+    assert "HIDDEN_LAYER" in codes, codes
+    assert "INJECTION_PHRASE" in codes, codes
+
+
+def test_disabled_layer_is_reported_once_per_document():
+    """The finding used to be emitted inside the per-page loop."""
+    import fitz
+    tmp = os.path.join(SAMPLES, "_multipage_layer.pdf")
+    doc = fitz.open()
+    for _ in range(3):
+        doc.new_page().insert_text((72, 100), "Ordinary visible page text.", fontsize=11)
+    ocg = doc.add_ocg("Reviewer notes", on=False)
+    doc[0].insert_text((72, 200), "concealed process mapping text", fontsize=9, oc=ocg)
+    doc.save(tmp)
+    doc.close()
+    try:
+        r = screen_one(tmp, _jd())
+        layers = [f for f in r.findings if f.code == "HIDDEN_LAYER"]
+        assert len(layers) == 1, [f.evidence for f in layers]
+    finally:
+        os.remove(tmp)
 
 
 def test_normal_dark_text_on_white_is_not_flagged():

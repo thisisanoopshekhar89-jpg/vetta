@@ -12,6 +12,7 @@ from __future__ import annotations
 import os
 import zipfile
 
+import fitz  # optional-content layers, which reportlab cannot write
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
@@ -194,6 +195,37 @@ def dark_on_dark_pdf(path):
     return path
 
 
+def hidden_layer_pdf(path):
+    """Text parked on an optional-content layer that is off by default.
+
+    The quietest of the hiding techniques, and the reason it needs its own
+    fixture: MuPDF honours the off state, so this text is absent from ordinary
+    extraction entirely. A screen that only reads what comes back sees no
+    suspicious content - it sees no content - and reports a clean document.
+    reportlab has no OCG support, so the layer is added afterwards with fitz.
+    """
+    c = canvas.Canvas(path, pagesize=A4)
+    c.setAuthor("Dana Whitfield")
+    c.setTitle("Dana Whitfield - CV")
+    body = list(BODY)
+    body[0] = "Dana Whitfield"
+    body[1] = "dana.whitfield@example.com  |  +44 7700 900456  |  Remote"
+    c.setFillColorRGB(0, 0, 0)
+    _draw(c, body)
+    c.showPage()
+    c.save()
+
+    doc = fitz.open(path)
+    ocg = doc.add_ocg("Reviewer notes", on=False)
+    doc[0].insert_text((56, 260), INJECTION, fontsize=8, fontname="helv",
+                       color=(0, 0, 0), oc=ocg)
+    doc[0].insert_text((56, 248), STUFFING[:110], fontsize=8, fontname="helv",
+                       color=(0, 0, 0), oc=ocg)
+    doc.saveIncr()
+    doc.close()
+    return path
+
+
 DOCX_DOC = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
 <w:body>
@@ -273,6 +305,7 @@ def main():
         poisoned_docx(os.path.join(HERE, "poisoned_resume.docx")),
         padded_pdf(os.path.join(HERE, "padded_resume.pdf")),
         dark_on_dark_pdf(os.path.join(HERE, "dark_on_dark_resume.pdf")),
+        hidden_layer_pdf(os.path.join(HERE, "hidden_layer_resume.pdf")),
     ]
     jd_path = os.path.join(HERE, "job_description.txt")
     with open(jd_path, "w", encoding="utf-8") as fh:
