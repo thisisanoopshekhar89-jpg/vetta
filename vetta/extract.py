@@ -127,6 +127,39 @@ def _span_text(span) -> str:
     return "".join(out)
 
 
+def _disabled_layer_text(path: str, baseline: str) -> list:
+    """(layer name, text) for every optional-content group that is off by default.
+
+    Switching the layer on is the only way to read it. MuPDF honours the off
+    state, so the content never appears in ordinary extraction - which is what
+    makes this the quietest of the hiding techniques. The screening tool
+    downstream does not see suspicious content, it sees no content, and reports
+    a clean document.
+    """
+    out = []
+    try:
+        doc = fitz.open(path)
+        configs = [c for c in doc.layer_ui_configs() if not c.get("on")]
+        doc.close()
+    except Exception:
+        return out
+
+    known = set(baseline.split("\n"))
+    for cfg in configs:
+        try:
+            probe = fitz.open(path)
+            probe.set_layer_ui_config(cfg["number"], action=0)
+            revealed = "\n".join(p.get_text() for p in probe)
+            probe.close()
+        except Exception:
+            continue
+        gained = [ln.strip() for ln in revealed.split("\n")
+                  if ln.strip() and ln not in known]
+        if gained:
+            out.append((cfg.get("text") or "unnamed layer", "\n".join(gained)))
+    return out
+
+
 def extract_pdf(path: str) -> Extraction:
     doc = fitz.open(path)
     ex = Extraction(path=path, kind="pdf", pages=doc.page_count,
@@ -189,7 +222,31 @@ def extract_pdf(path: str) -> Extraction:
             else:
                 visible_parts.append(text)
 
-        # Optional-content layers can be switched off for display yet still extract.
+    ex.machine_text = "\n".join(machine_parts)
+    ex.visible_text = "\n".join(visible_parts)
+
+    # Optional-content layers can be switched off for display yet still carry text.
+    # Reading what is on them matters as much as noting that they exist: a layer
+    # named "Reviewer notes" is unremarkable until you see it holds the job
+    # description. This runs once per document, not once per page.
+    recovered = _disabled_layer_text(path, ex.machine_text)
+    for name, text in recovered:
+        ex.hidden_segments.append(text)
+        # Parsers that ignore the off state - and several common ones do - read
+        # this text normally, so it belongs in the machine view too.
+        ex.machine_text += "\n" + text
+        ex.findings.append(Finding(
+            code="HIDDEN_LAYER", severity=HIGH,
+            title="Text hidden on an optional-content layer that is off by default",
+            evidence=" ".join(text.split())[:200],
+            where="document",
+            detail=("Layer %r does not display, so this text reaches no reader, but "
+                    "it is extractable by any parser that ignores the layer state. "
+                    "It had to be switched on to be read at all." % name),
+            meta={"layer": name, "characters": len(text)},
+        ))
+
+    if not recovered:
         try:
             for ocg in (doc.get_ocgs() or {}).values():
                 if ocg.get("on") is False:
@@ -199,13 +256,10 @@ def extract_pdf(path: str) -> Extraction:
                         evidence=str(ocg.get("name", ""))[:120],
                         where="document",
                         detail=("Content on a disabled layer does not display but is "
-                                "still extractable."),
+                                "still extractable. No text was recoverable from it."),
                     ))
         except Exception:
             pass
-
-    ex.machine_text = "\n".join(machine_parts)
-    ex.visible_text = "\n".join(visible_parts)
 
     # A text layer far larger than what is drawn suggests an image-over-text overlay.
     if ex.pages and len(re.sub(r"\s", "", ex.visible_text)) == 0 \
